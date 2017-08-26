@@ -7,12 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FractionTest {
-    private static final Logger LOG = Logger.getLogger(FractionTest.class.getName());
+    private static final Logger LOG = LogManager.getLogger(FractionTest.class.getName());
 
     @Test
     void createFractionTest1() {
