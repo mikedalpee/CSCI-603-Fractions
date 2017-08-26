@@ -2,6 +2,11 @@ package com.softmoore.math;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -331,7 +336,7 @@ class FractionTest {
                 },
                 ()->
                 {
-                    LOG.info("  Divide postive Fraction by negative Fraction");
+                    LOG.info("  Divide positive Fraction by negative Fraction");
                     Fraction f1 = new Fraction(1,2);
                     Fraction f2 = new Fraction(-1,2);
                     assertTrue(f1.divide(f2).equals(Fraction.ONE.negate()), "Division Error");
@@ -355,21 +360,253 @@ class FractionTest {
 
     @Test
     void incTest() {
+        LOG.info(
+                "Testing Fraction.inc()");
+        assertAll(
+                "Fraction.inc()",
+                ()->
+                {
+                    LOG.info("  Inc zero Fraction");
+                     assertTrue(Fraction.ZERO.inc().equals(Fraction.ONE), "Increment Error");
+                },
+                ()->
+                {
+                    LOG.info("  Inc positive Fraction");
+                    Fraction f1 = new Fraction(1,2);
+                    assertTrue(f1.inc().equals(new Fraction(3,2)), "Increment Error");
+                },
+                ()->
+                {
+                    LOG.info("  Inc negative Fraction");
+                    Fraction f1 = new Fraction(-1,2);
+                    assertTrue(f1.inc().equals(new Fraction(1,2)), "Increment Error");
+                }
+        );
     }
 
     @Test
     void negateTest() {
+        LOG.info(
+                "Testing Fraction.negate()");
+        assertAll(
+                "Fraction.negate()",
+                ()->
+                {
+                    LOG.info("  Negate zero Fraction");
+                     assertTrue(Fraction.ZERO.negate().equals(Fraction.ZERO), "Negate Error");
+                },
+                ()->
+                {
+                    LOG.info("  Negate positive Fraction");
+                    Fraction f1 = new Fraction(1,2);
+                    assertTrue(f1.negate().equals(new Fraction(-1,2)), "Negate Error");
+                },
+                ()->
+                {
+                    LOG.info("  Negate negative Fraction");
+                    Fraction f1 = new Fraction(-1,2);
+                    assertTrue(f1.negate().equals(new Fraction(1,2)), "Negate Error");
+                }
+        );
     }
 
     @Test
     void toStringTest() {
+        LOG.info(
+                "Testing Fraction.toString()");
+        assertAll(
+                "Fraction.toString()",
+                ()->
+                {
+                    LOG.info("  ToString zero Fraction");
+                    assertTrue(Fraction.ZERO.toString().equals("0/1"), "ToString Error");
+                },
+                ()->
+                {
+                    LOG.info("  ToString positive Fraction");
+                    Fraction f1 = new Fraction(1,2);
+                    assertTrue(f1.toString().equals("1/2"), "ToString Error");
+                },
+                ()->
+                {
+                    LOG.info("  ToString negative Fraction");
+                    Fraction f1 = new Fraction(-1,2);
+                    assertTrue(f1.toString().equals("-1/2"), "ToString Error");
+                }
+        );
     }
 
     @Test
     void hashCodeTest() {
-    }
+        LOG.info(
+                "Testing Fraction.hashCode()");
+
+        // For fun, compute the efficiency of the hashCode algorithm by randomly
+        // generating one million unique fractions and counting any collisions that
+        // occur
+
+        Map<Integer,List<String>> hashes = new HashMap<>();
+        long collisions = 0;
+        long entries = 0;
+        long duplicates = 0;
+        long zeroes = 0;
+
+        Random rand = new Random(0); // generate the same sequence every test
+
+        do
+        {
+            long numerator = rand.nextLong();
+
+            // make sure denominator is not zero
+
+            long denominator = rand.nextLong();
+
+            while (denominator == 0)
+            {
+                zeroes++;
+
+                denominator = rand.nextLong();
+             }
+
+            Fraction f = new Fraction(numerator,denominator);
+            String   fStr = f.toString();
+
+            //System.out.println(fStr);
+
+            int hash = new Fraction(numerator,denominator).hashCode();
+
+            // check for collision
+
+            if (hashes.containsKey(hash))
+            {
+                List<String> fractions = hashes.get(hash);
+
+                if (fractions.contains(fStr))
+                {
+                    // generated a duplicate normalized fraction - ignore.
+                    duplicates++;
+                    continue;
+                }
+
+                // a collision occurred
+
+                fractions.add(fStr);
+
+                entries++;
+                collisions++;
+            }
+            else
+            {
+                // this fraction is unique
+
+                List<String> fractions = new ArrayList<>();
+
+                fractions.add(fStr);
+
+                hashes.put(hash,fractions);
+
+                entries++;
+            }
+        }
+        while (entries < 1000000);
+
+        double hashEfficiency = (1.0 - (double)collisions/(double)entries)*100.0;
+
+        LOG.info(
+                "Fraction.hashCode() experienced "+
+                Long.toString(collisions)+
+                " collisions out of "+
+                Long.toString(entries)+
+                " unique fractions - efficiency: "+
+                Double.toString(hashEfficiency)+
+                "%.\nThe test generated "+
+                Long.toString(duplicates)+
+                " duplicate normalized Fractions and "+
+                Long.toString(zeroes)+
+                " zero denominators");
+   }
 
     @Test
+    void compareToTest() {
+        LOG.info(
+                "Testing Fraction.compareTo()");
+        assertAll(
+                "Fraction.compareTo()",
+                ()->
+                {
+                    LOG.info("  Compare smaller Fraction to larger fraction");
+                    Fraction f1 = new Fraction(1,3);
+                    Fraction f2 = new Fraction(1,2);
+                    assertTrue(f1.compareTo(f2) < 0, "Comparison Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare larger Fraction to smaller fraction");
+                    Fraction f1 = new Fraction(1,2);
+                    Fraction f2 = new Fraction(1,3);
+                    assertTrue(f1.compareTo(f2) > 0, "Comparison Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare two Fractions with same value");
+                    Fraction f1 = new Fraction(1,2);
+                    Fraction f2 = new Fraction(1,2);
+                    assertTrue(f1.compareTo(f2) == 0, "Comparison Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare Fraction to itself");
+                    Fraction f1 = new Fraction(1,2);
+                    assertTrue(f1.compareTo(f1) == 0, "Comparison Error");
+                }
+        );
+    }
+    
+    @Test
     void equalsTest() {
+        LOG.info(
+                "Testing Fraction.equals()");
+        assertAll(
+                "Fraction.equals()",
+                ()->
+                {
+                    LOG.info("  Compare smaller Fraction to larger fraction for equality");
+                    Fraction f1 = new Fraction(1,3);
+                    Fraction f2 = new Fraction(1,2);
+                    assertFalse(f1.equals(f2), "Equality Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare larger Fraction to smaller fraction for equality");
+                    Fraction f1 = new Fraction(1,2);
+                    Fraction f2 = new Fraction(1,3);
+                    assertFalse(f1.equals(f2), "Equality Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare two Fractions with same value equality");
+                    Fraction f1 = new Fraction(1,2);
+                    Fraction f2 = new Fraction(1,2);
+                    assertTrue(f1.equals(f2), "Equality Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare Fraction to itself for equality");
+                    Fraction f1 = new Fraction(1,2);
+                    assertTrue(f1.equals(f1), "Equality Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare Fraction to null for equality");
+                    Fraction f1 = new Fraction(1,2);
+                    assertFalse(f1.equals(null), "Equality Error");
+                },
+                ()->
+                {
+                    LOG.info("  Compare Fraction to non-Fraction for equality");
+                    Fraction f1 = new Fraction(1,2);
+                    assertFalse(f1.equals("1/2"), "Equality Error");
+                }
+        );
     }
 }
